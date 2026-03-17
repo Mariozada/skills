@@ -513,6 +513,32 @@ Use this to monitor task progress:
 - **When finished:** `status` is `completed` or `failed`, `message` has the final answer or failure reason, `succeeded` is `true`/`false`, `lastResponse` is `null`.
 - **Statuses:** `created`, `running`, `paused`, `completed`, `failed`, `cancelled`
 
+### Monitoring a Running Task
+
+After creating a task, follow this pattern:
+
+1. **Immediately** tell the user the task is running (task ID, what it's doing).
+2. **After 5 seconds** -- do the first status check. This catches quick tasks and confirms the agent started.
+3. **After 30 seconds** -- check again if still running.
+4. **Subsequent checks** -- use your judgement on the interval based on:
+   - **Task complexity** -- a simple "open Chrome" task finishes fast; a multi-app workflow takes longer, so space out checks accordingly.
+   - **Progress** -- if steps are increasing and `lastResponse` is changing, the agent is working well; you can wait longer between checks. If the step count and `lastResponse` haven't changed, the agent may be stuck; check sooner and consider warning the user.
+   - **Time elapsed** -- the longer a task has been running successfully, the more you can trust it and wait between checks.
+
+**At each check:**
+- Report to the user what the agent is doing (from `lastResponse` -- its current plan, thinking, what step it's on).
+- Optionally take a screenshot (`GET /devices/{id}/screenshot`) to show the user what's on screen.
+- Optionally read the UI state (`GET /devices/{id}/ui-state`) for more context.
+- Give the user a meaningful update, not just "still running" -- e.g. "The agent is on step 8, currently in the Settings app looking for display options."
+
+**When the task finishes:**
+- Report the result (`message`, `succeeded`, `output`).
+- If the task failed unexpectedly, auto-submit feedback (see Feedback section).
+
+**If the agent seems stuck:**
+- Send a message via `POST /tasks/{id}/message` to nudge it in the right direction.
+- Let the user know and ask if they want to steer it or cancel.
+
 ### Send Message to Task
 
 ```

@@ -16,13 +16,21 @@ Mobilerun turns your Android phone into a tool that AI can control. Instead of m
 Base URL: `https://api.mobilerun.ai/v1`
 Auth: `Authorization: Bearer <MOBILERUN_API_KEY>`
 
+**Important:** The base domain (`https://api.mobilerun.ai/`) returns 404. You must always include `/v1` in the path. All API calls should be made via `curl`. Example:
+
+```bash
+curl -s https://api.mobilerun.ai/v1/devices \
+  -H "Authorization: Bearer $MOBILERUN_API_KEY"
+```
+
 ## Before You Start
 
 The API key (`MOBILERUN_API_KEY`) is already available -- OpenClaw handles credential setup before this skill loads. Do NOT ask the user for an API key. Just use it.
 
 1. **Check for devices:**
-   ```
-   GET /devices
+   ```bash
+   curl -s https://api.mobilerun.ai/v1/devices \
+     -H "Authorization: Bearer $MOBILERUN_API_KEY"
    ```
    - `200` with a device in `state: "ready"` = **good to go, skip all setup, just do what the user asked**
    - `200` but no devices or all `state: "disconnected"` = device issue (see step 2)
@@ -33,8 +41,9 @@ The API key (`MOBILERUN_API_KEY`) is already available -- OpenClaw handles crede
    - Device with `state: "disconnected"` = Portal app lost connection, ask user to reopen it
 
 3. **Confirm device is responsive** (optional, only if first action fails):
-   ```
-   GET /devices/{deviceId}/screenshot
+   ```bash
+   curl -s https://api.mobilerun.ai/v1/devices/{deviceId}/screenshot \
+     -H "Authorization: Bearer $MOBILERUN_API_KEY" -o screenshot.png
    ```
    If this returns a PNG image, the device is working.
 
